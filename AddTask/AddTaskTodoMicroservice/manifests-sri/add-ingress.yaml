@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: add-ingress
+  labels:
+    app: amazon
+spec:
+  ingressClassName: azure-application-gateway 
+  rules:
+  - host: addtask.srijansharma.online
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: amazon-add-svc
+            port: 
+              number: 80

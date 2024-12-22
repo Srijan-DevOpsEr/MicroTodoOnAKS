@@ -1,0 +1,38 @@
+trigger: none
+pool: app pool
+stages:
+- stage: BuildAddTask
+  displayName: build the Add task
+  jobs:
+  - job: AddTaskjob
+    displayName: build the AdTask
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker-SC'
+        repository: 'AddTask'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+- stage: Deploymentstageadd
+  displayName: Deploy Add Application
+  dependsOn: BuildAddTask
+  jobs:
+  - job: deployonAKS
+    displayName: Deploy the add application
+    steps:
+    - task: Kubernetes@1
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceEndpoint: 'K8s-SC'
+        namespace: 'default'
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'manifests-sri'
+        secretType: 'dockerRegistry'
+        containerRegistryType: 'Azure Container Registry'
+ 
+ 
