@@ -1,0 +1,74 @@
+name: multistageInfraPipeline
+trigger: none
+pool: app pool
+variables: 
+  WORK_DIR: $(System.DefaultWorkingDirectory)/Parent-Module
+stages:
+- stage: tfScanandTerraformInitialization
+  jobs: 
+  - job: codescanner
+    displayName: static code scanning
+    steps:
+    - task: tfsec@1
+      inputs:
+        version: 'v1.26.0'
+        debug: true
+        dir: '$(WORK_DIR)'
+  - job: TerraformInitiation
+    displayName: Terraform init and plan
+    steps:
+    - task: TerraformTaskV4@4
+      displayName: Terraform init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(WORK_DIR)'
+        backendServiceArm: 'Automate'
+        backendAzureRmResourceGroupName: 'rg-test-backend-config'
+        backendAzureRmStorageAccountName: 'strgtestbackendconfig'
+        backendAzureRmContainerName: 'containertestbackendconfig'
+        backendAzureRmKey: 'key1.tfstate'
+    - task: TerraformTaskV4@4
+      displayName: terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(WORK_DIR)'
+        environmentServiceNameAzureRM: 'Automate'
+- stage: ManualValidation
+  jobs:
+  - job: 
+    displayName: Manual Validation
+    pool: server
+    steps:
+    - task: ManualValidation@1
+      inputs:
+        notifyUsers: 'abc@abc.com'
+        allowApproversToApproveTheirOwnRuns: true
+        instructions: 'Please apporve the Infra'
+        onTimeout: 'resume'
+- stage: TerraformApply
+  dependsOn: ManualValidation
+  displayName: terraform init and apply 
+  jobs: 
+  - job: terraformInit 
+    displayName: terraform init and apply
+    steps: 
+    - task: TerraformTaskV4@4
+      displayName: init again
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(WORK_DIR)'
+        backendServiceArm: 'Automate'
+        backendAzureRmResourceGroupName: 'rg-test-backend-config'
+        backendAzureRmStorageAccountName: 'strgtestbackendconfig'
+        backendAzureRmContainerName: 'containertestbackendconfig'
+        backendAzureRmKey: 'key1.tfstate'
+    - task: TerraformTaskV4@4
+      displayName: resource creation
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(WORK_DIR)'
+        environmentServiceNameAzureRM: 'Automate'
