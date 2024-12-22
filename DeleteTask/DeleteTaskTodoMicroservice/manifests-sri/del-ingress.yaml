@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: del-ingress
+  labels:
+    app: amazon
+spec:
+  IngressClassName: azure-application-gateway
+  rules:
+  - host: deletetask.srijansharma.online
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: amazon-del-svc
+            port: 
+              number: 80
