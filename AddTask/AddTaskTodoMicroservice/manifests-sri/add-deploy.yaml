@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: addtask-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amazon
+  template:
+    metadata:
+      labels:
+        app: amazon
+    spec:
+      
+      containers:
+      - name: amazon-add
+        image: acr1612.azurecr.io/addtask:latest
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        ports:
+        - containerPort: 8000
+        env:
+        - name: CONNECTION_STRING
+          value: Driver={ODBC Driver 17 for SQL Server};Server=tcp:msg1712.database.windows.net,1433;Database=todoappdb;Uid=devopsadmin;Pwd=P@ssw01rd@123;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;
+
