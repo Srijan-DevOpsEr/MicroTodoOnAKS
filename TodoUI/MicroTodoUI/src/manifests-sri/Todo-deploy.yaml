@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amazonapp-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: amazon
+  template:
+    metadata:
+      labels:
+        app: amazon
+    spec:
+      containers:
+      - name: amazon-app-cont
+        image: acr1612.azurecr.io/todoui:latest
+        ports:
+        - containerPort: 80

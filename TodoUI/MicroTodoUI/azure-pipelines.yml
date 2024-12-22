@@ -1,0 +1,35 @@
+trigger: none
+pool: app pool
+stages:
+- stage: BuildStage
+  displayName: Build the image
+  jobs:
+  - job: buildjob
+    displayName: Build and Push Docker Image
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker-SC'
+        repository: 'TodoUI'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+- stage: DeploymentstageUI
+  displayName: Deploy UI Application
+  dependsOn: BuildStage
+  jobs:
+  - job: deployonAKS
+    displayName: Deploy the TodoUI application
+    steps:
+    - task: KubernetesManifest@1
+      inputs:
+        action: 'deploy'
+        connectionType: 'kubernetesServiceConnection'
+        kubernetesServiceConnection: 'K8s-SC'
+        namespace: 'default'
+        manifests: 'src/manifests-sri/*.yaml'
+        containers: 'acr1612.azurecr.io/todoui:$(Build.BuildId)'
+
