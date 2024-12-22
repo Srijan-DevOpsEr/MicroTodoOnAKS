@@ -1,0 +1,2 @@
+variable "aks" {}
+# variable "acr" {}
